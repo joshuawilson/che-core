@@ -16,13 +16,24 @@ import org.eclipse.che.dto.shared.DTO;
 /**
  * Describes changes of state of a workspace.
  *
+ * @author Eugene Voevodin
  * @author Alexander Garagatyi
  */
 @EventOrigin("machine")
 @DTO
 public interface WorkspaceStatusEvent {
+
+    //TODO add events related to project
     enum EventType {
-        STARTING, RUNNING, STOPPING, STOPPED, ERROR
+        STARTING,
+        RUNNING,
+        STOPPING,
+        STOPPED,
+        ERROR,
+        MACHINE_CREATING,
+        MACHINE_RUNNING,
+        MACHINE_DESTROYING,
+        MACHINE_DESTROYED
     }
 
     EventType getEventType();
@@ -42,4 +53,16 @@ public interface WorkspaceStatusEvent {
     void setError(String error);
 
     WorkspaceStatusEvent withError(String error);
+
+    String getMachineId();
+
+    WorkspaceStatusEvent withMachineId(String machineId);
+
+    String getMachineName();
+
+    WorkspaceStatusEvent withMachineName(String machineName);
+
+    boolean isDevMachine();
+
+    WorkspaceStatusEvent withIsDevMachine(boolean isDev);
 }

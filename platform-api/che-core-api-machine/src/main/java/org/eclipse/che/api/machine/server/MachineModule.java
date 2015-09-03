@@ -14,7 +14,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
 import org.eclipse.che.api.machine.server.event.MachineProcessMessenger;
-import org.eclipse.che.api.machine.server.event.MachineStateMessenger;
+import org.eclipse.che.api.machine.server.event.WorkspaceStatusEventAdapter;
 import org.eclipse.che.inject.DynaModule;
 
 /**
@@ -26,7 +26,7 @@ import org.eclipse.che.inject.DynaModule;
 public class MachineModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(MachineStateMessenger.class).asEagerSingleton();
+        bind(WorkspaceStatusEventAdapter.class).asEagerSingleton();
         bind(MachineProcessMessenger.class).asEagerSingleton();
 
         bindConstant().annotatedWith(Names.named("machine.extension.api_port")).to(4401);

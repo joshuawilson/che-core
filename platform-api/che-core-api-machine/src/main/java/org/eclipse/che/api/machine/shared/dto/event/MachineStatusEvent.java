@@ -55,4 +55,8 @@ public interface MachineStatusEvent {
     String getMachineName();
 
     MachineStatusEvent withMachineName(String machineName);
+
+    boolean isDev();
+
+    MachineStatusEvent withDev(boolean isDev);
 }

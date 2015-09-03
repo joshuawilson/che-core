@@ -266,7 +266,8 @@ public class MachineManager {
                                                .withEventType(MachineStatusEvent.EventType.CREATING)
                                                .withMachineId(machine.getId())
                                                .withWorkspaceId(machine.getWorkspaceId())
-                                               .withMachineName(machine.getDisplayName()));
+                                               .withMachineName(machine.getDisplayName())
+                                               .withDev(machine.isDev()));
 
                 final Instance instance = this.createInstance(machine, machineLogger);
 
@@ -278,7 +279,8 @@ public class MachineManager {
                                                .withEventType(MachineStatusEvent.EventType.RUNNING)
                                                .withMachineId(machine.getId())
                                                .withWorkspaceId(machine.getWorkspaceId())
-                                               .withMachineName(machine.getDisplayName()));
+                                               .withMachineName(machine.getDisplayName())
+                                               .withDev(machine.isDev()));
 
                 return instance;
             } catch (ServerException | ConflictException e) {
@@ -287,6 +289,7 @@ public class MachineManager {
                                                .withMachineId(machine.getId())
                                                .withWorkspaceId(machine.getWorkspaceId())
                                                .withMachineName(machine.getDisplayName())
+                                               .withDev(machine.isDev())
                                                .withError(e.getLocalizedMessage()));
 
                 try {
@@ -693,7 +696,8 @@ public class MachineManager {
                                        .withEventType(MachineStatusEvent.EventType.DESTROYING)
                                        .withMachineId(machineId)
                                        .withWorkspaceId(machineState.getWorkspaceId())
-                                       .withMachineName(machineState.getDisplayName()));
+                                       .withMachineName(machineState.getDisplayName())
+                                       .withDev(machine.isDev()));
 
         if (async) {
             executor.execute(ThreadLocalPropagateContext.wrap(new Runnable() {
@@ -802,7 +806,8 @@ public class MachineManager {
                                        .withEventType(MachineStatusEvent.EventType.DESTROYED)
                                        .withMachineId(machine.getId())
                                        .withWorkspaceId(machineState.getWorkspaceId())
-                                       .withMachineName(machineState.getDisplayName()));
+                                       .withMachineName(machineState.getDisplayName())
+                                       .withDev(machineState.isDev()));
     }
 
     private void createMachineLogsDir(String machineId) throws MachineException {
