@@ -49,6 +49,13 @@ public class ExtServerStateEvent extends GwtEvent<ExtServerStateHandler> {
         return new ExtServerStateEvent(ExtServerState.STOPPED);
     }
 
+    /**
+     * Creates a extension server failed event.
+     */
+    public static ExtServerStateEvent createExtServerFailedEvent() {
+        return new ExtServerStateEvent(ExtServerState.FAILED);
+    }
+
     @Override
     public Type<ExtServerStateHandler> getAssociatedType() {
         return TYPE;
@@ -67,6 +74,9 @@ public class ExtServerStateEvent extends GwtEvent<ExtServerStateHandler> {
                 break;
             case STOPPED:
                 handler.onExtServerStopped(this);
+                break;
+            case FAILED:
+                handler.onExtServerFailed(this);
                 break;
             default:
                 break;

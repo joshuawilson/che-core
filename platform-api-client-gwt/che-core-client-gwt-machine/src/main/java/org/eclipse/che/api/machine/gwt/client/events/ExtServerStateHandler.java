@@ -34,4 +34,12 @@ public interface ExtServerStateHandler extends EventHandler {
      *         the fired {@link ExtServerStateEvent}
      */
     void onExtServerStopped(ExtServerStateEvent event);
+
+    /**
+     * Called when extension server has been stopped due to an error.
+     *
+     * @param event
+     *         the fired {@link ExtServerStateEvent}
+     */
+    void onExtServerFailed(ExtServerStateEvent event);
 }

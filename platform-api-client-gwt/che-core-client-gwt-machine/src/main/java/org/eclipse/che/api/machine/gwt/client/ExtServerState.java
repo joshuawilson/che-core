@@ -16,5 +16,5 @@ package org.eclipse.che.api.machine.gwt.client;
  * @author Roman Nikitenko.
  */
 public enum ExtServerState {
-    STARTED, STOPPED
+    STARTED, STOPPED, FAILED
 }
