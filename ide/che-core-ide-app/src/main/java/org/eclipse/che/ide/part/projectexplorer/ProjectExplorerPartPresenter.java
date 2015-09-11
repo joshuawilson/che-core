@@ -10,33 +10,26 @@
  *******************************************************************************/
 package org.eclipse.che.ide.part.projectexplorer;
 
+import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.web.bindery.event.shared.EventBus;
+
 import org.eclipse.che.api.project.gwt.client.ProjectServiceClient;
 import org.eclipse.che.api.project.shared.dto.ProjectDescriptor;
-
 import org.eclipse.che.ide.CoreLocalizationConstant;
+import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.editor.EditorAgent;
-import org.eclipse.che.ide.api.editor.EditorPartPresenter;
-import org.eclipse.che.ide.api.event.ItemEvent;
-import org.eclipse.che.ide.api.event.ItemHandler;
 import org.eclipse.che.ide.api.event.NodeChangedEvent;
 import org.eclipse.che.ide.api.event.NodeChangedHandler;
 import org.eclipse.che.ide.api.event.NodeExpandedEvent;
-import org.eclipse.che.ide.api.event.PersistProjectTreeStateEvent;
 import org.eclipse.che.ide.api.event.ProjectActionEvent;
 import org.eclipse.che.ide.api.event.ProjectActionHandler;
-import org.eclipse.che.ide.api.event.RefreshProjectTreeEvent;
-import org.eclipse.che.ide.api.event.RefreshProjectTreeHandler;
-import org.eclipse.che.ide.api.event.RestoreProjectTreeStateEvent;
 import org.eclipse.che.ide.api.event.RenameNodeEvent;
 import org.eclipse.che.ide.api.event.RenameNodeEventHandler;
-import org.eclipse.che.ide.api.project.tree.VirtualFile;
-import org.eclipse.che.ide.api.project.tree.generic.FileNode;
-import org.eclipse.che.ide.api.project.tree.generic.UpdateTreeNodeDataIterable;
-import org.eclipse.che.ide.collections.StringMap;
-import org.eclipse.che.ide.collections.js.JsoArray;
-import org.eclipse.che.ide.menu.ContextMenu;
-
-import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.mvp.View;
 import org.eclipse.che.ide.api.parts.HasView;
 import org.eclipse.che.ide.api.parts.ProjectExplorerPart;
@@ -46,34 +39,25 @@ import org.eclipse.che.ide.api.project.tree.TreeStructure;
 import org.eclipse.che.ide.api.project.tree.TreeStructureProviderRegistry;
 import org.eclipse.che.ide.api.project.tree.generic.Openable;
 import org.eclipse.che.ide.api.project.tree.generic.StorableNode;
+import org.eclipse.che.ide.api.project.tree.generic.UpdateTreeNodeDataIterable;
 import org.eclipse.che.ide.api.selection.Selection;
 import org.eclipse.che.ide.collections.Array;
-import org.eclipse.che.ide.collections.Collections;
+import org.eclipse.che.ide.collections.js.JsoArray;
 import org.eclipse.che.ide.logger.AnalyticsEventLoggerExt;
+import org.eclipse.che.ide.menu.ContextMenu;
 import org.eclipse.che.ide.rest.AsyncRequestCallback;
 import org.eclipse.che.ide.ui.tree.SelectionModel;
-import org.eclipse.che.ide.util.loging.Log;
-
-import com.google.gwt.resources.client.ImageResource;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.web.bindery.event.shared.EventBus;
-
 import org.eclipse.che.ide.util.Config;
+import org.eclipse.che.ide.util.loging.Log;
 import org.vectomatic.dom.svg.ui.SVGResource;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import javax.annotation.Nonnull;
-
-import static org.eclipse.che.ide.api.event.ItemEvent.ItemOperation.CREATED;
-import static org.eclipse.che.ide.api.event.ItemEvent.ItemOperation.DELETED;
 
 /**
  * Project Explorer displays project's tree in a dedicated part (view).
@@ -81,9 +65,10 @@ import static org.eclipse.che.ide.api.event.ItemEvent.ItemOperation.DELETED;
  * @author Nikolay Zamosenchuk
  * @author Artem Zatsarynnyy
  */
+@Deprecated
 @Singleton
 public class ProjectExplorerPartPresenter extends BasePresenter implements ProjectExplorerView.ActionDelegate,
-        ProjectExplorerPart, HasView, RefreshProjectTreeHandler {
+        ProjectExplorerPart, HasView /*RefreshProjectTreeHandler*/ {
 
     private ProjectExplorerView            view;
     private EventBus                       eventBus;
@@ -99,7 +84,7 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
     private Provider<EditorAgent>          editorAgentProvider;
 
     /** A list of nodes is used for asynchronously refreshing the tree. */
-    private Array<TreeNode<?>> nodesToRefresh;
+    private List<TreeNode<?>> nodesToRefresh;
 
     /** Instantiates the Project Explorer presenter. */
     @Inject
@@ -218,7 +203,7 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
             }
         });
 
-        eventBus.addHandler(RefreshProjectTreeEvent.TYPE, this);
+//        eventBus.addHandler(RefreshProjectTreeEvent.TYPE, this);
 
 //        eventBus.addHandler(RefreshProjectTreeEvent.TYPE, new RefreshProjectTreeHandler() {
 //            @Override
@@ -240,12 +225,12 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
 //                    return;
 //                }
 //
-//                currentTreeStructure.getRootNodes(new AsyncCallback<Array<TreeNode<?>>>() {
+//                currentTreeStructure.getRootNodes(new AsyncCallback<List<TreeNode<?>>>() {
 //                    @Override
-//                    public void onSuccess(Array<TreeNode<?>> result) {
-//                        for (TreeNode<?> childNode : result.asIterable()) {
+//                    public void onSuccess(List<TreeNode<?>> result) {
+//                        for (TreeNode<?> childNode : result) {
 //                            // clear children in order to force to refresh
-//                            childNode.setChildren(Collections.<TreeNode<?>>createArray());
+//                            childNode.setChildren(new ArrayList<TreeNode<?>>());
 //                            refreshAndSelectNode(childNode);
 //
 //                            ProjectDescriptor projectDescriptor = appContext.getCurrentProject().getRootProject();
@@ -276,30 +261,30 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
             }
         });
 
-        eventBus.addHandler(ItemEvent.TYPE, new ItemHandler() {
-            @Override
-            public void onItem(final ItemEvent event) {
-                if (DELETED == event.getOperation()) {
-                    refreshAndSelectNode(event.getItem().getParent());
-                } else if (CREATED == event.getOperation()) {
-                    final TreeNode<?> selectedNode = view.getSelectedNode();
-                    updateNode(selectedNode.getParent());
-                    updateNode(selectedNode);
-                    view.expandAndSelectNode(event.getItem());
-                }
-            }
-        });
+//        eventBus.addHandler(ItemEvent.TYPE, new ItemHandler() {
+//            @Override
+//            public void onItem(final ItemEvent event) {
+//                if (DELETED == event.getOperation()) {
+//                    refreshAndSelectNode(event.getItem().getParent());
+//                } else if (CREATED == event.getOperation()) {
+//                    final TreeNode<?> selectedNode = view.getSelectedNode();
+//                    updateNode(selectedNode.getParent());
+//                    updateNode(selectedNode);
+//                    view.expandAndSelectNode(event.getItem());
+//                }
+//            }
+//        });
 
         eventBus.addHandler(RenameNodeEvent.TYPE, new RenameNodeEventHandler() {
             @Override
             public void onNodeRenamed(TreeNode<?> parentNode, String newParenNodePath) {
                 if (parentNode instanceof UpdateTreeNodeDataIterable) {
                     final StorableNode parent = (StorableNode) parentNode;
-                    Array<TreeNode<?>> children = JsoArray.create();
+                    List<TreeNode<?>> children = new ArrayList<>();
                     children.add(parent);
                     getAllChildren(parentNode, children);
                     getOpenedUnCashedFiles(parent, children);
-                    final Iterator<TreeNode<?>> treeNodeIterator = children.asIterable().iterator();
+                    final Iterator<TreeNode<?>> treeNodeIterator = children.iterator();
 
                     updateDataTreeNode(parent, newParenNodePath, treeNodeIterator);
                 }
@@ -331,7 +316,7 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
                 @Override
                 public void onFailure(Throwable throwable) {
                     Log.error(getClass(), "Error update treeNode data " + throwable);
-                    eventBus.fireEvent(new RefreshProjectTreeEvent());
+//                    eventBus.fireEvent(new RefreshProjectTreeEvent());
                 }
             }, newPath);
             return;
@@ -349,8 +334,8 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
         return prefixPath + nodeRenamedPath + currentPath;
     }
 
-    private void getAllChildren(TreeNode<?> parent, Array<TreeNode<?>> children) {
-        Array<TreeNode<?>> childrenForCurrentDeep = parent.getChildren();
+    private void getAllChildren(TreeNode<?> parent, List<TreeNode<?>> children) {
+        List<TreeNode<?>> childrenForCurrentDeep = parent.getChildren();
 
         if (childrenForCurrentDeep.isEmpty()) {
             return;
@@ -358,80 +343,79 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
 
         children.addAll(childrenForCurrentDeep);
 
-        for (TreeNode<?> node: childrenForCurrentDeep.asIterable()) {
+        for (TreeNode<?> node: childrenForCurrentDeep) {
             getAllChildren(node, children);
         }
     }
 
-    private void getOpenedUnCashedFiles(StorableNode parentNode, Array<TreeNode<?>> children) {
-        StringMap<EditorPartPresenter> editorParts = editorAgentProvider.get().getOpenedEditors();
-        for (EditorPartPresenter editorPart: editorParts.getValues().asIterable()) {
-            VirtualFile file = editorPart.getEditorInput().getFile();
-
-            if (!(file instanceof FileNode)) {
-                continue;
-            }
-
-            FileNode fileNode = (FileNode)file;
-            String path = fileNode.getPath();
-
-            if (path.startsWith(parentNode.getPath() + "/") && !children.contains(fileNode)) {
-                children.add(fileNode);
-            }
-        }
+    private void getOpenedUnCashedFiles(StorableNode parentNode, List<TreeNode<?>> children) {
+//        StringMap<EditorPartPresenter> editorParts = editorAgentProvider.get().getOpenedEditors();
+//        for (EditorPartPresenter editorPart: editorParts.getValues().asIterable()) {
+//            VirtualFile file = editorPart.getEditorInput().getFile();
+//
+//            if (!(file instanceof FileNode)) {
+//                continue;
+//            }
+//
+//            FileNode fileNode = (FileNode)file;
+//            String path = fileNode.getPath();
+//
+//            if (path.startsWith(parentNode.getPath() + "/") && !children.contains(fileNode)) {
+//                children.add(fileNode);
+//            }
+//        }
     }
 
     @Override
     public void onRefreshTree() {
-        onRefreshProjectTree(new RefreshProjectTreeEvent(null, true));
+//        onRefreshProjectTree(new RefreshProjectTreeEvent(null, true));
     }
 
-    /**
-     * Refreshes project tree.
-     *
-     * @param event
-     */
-    public void onRefreshProjectTree(RefreshProjectTreeEvent event) {
-        eventBus.fireEvent(new PersistProjectTreeStateEvent());
-
-        if (appContext.getCurrentProject() == null) {
-            setTree(projectListStructureProvider.get());
-            return;
-        }
-
-        if (event.refreshSubtree()) {
-            nodesToRefresh = view.getOpenedTreeNodes();
-            refreshTreeNodes();
-            return;
-        }
-
-        if (event.getNode() != null) {
-            refreshAndSelectNode(event.getNode());
-            return;
-        }
-
-        currentTreeStructure.getRootNodes(new AsyncCallback<Array<TreeNode<?>>>() {
-            @Override
-            public void onSuccess(Array<TreeNode<?>> result) {
-                for (TreeNode<?> childNode : result.asIterable()) {
-                    // clear children in order to force to refresh
-                    childNode.setChildren(Collections.<TreeNode<?>>createArray());
-                    refreshAndSelectNode(childNode);
-
-                    ProjectDescriptor projectDescriptor = appContext.getCurrentProject().getRootProject();
-                    String workspaceName = projectDescriptor.getWorkspaceName();
-                    String fullProjectPath = "/" + workspaceName + projectDescriptor.getPath();
-                    eventBus.fireEvent(new RestoreProjectTreeStateEvent(fullProjectPath));
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable caught) {
-                Log.error(ProjectExplorerPartPresenter.class, caught);
-            }
-        });
-    }
-
+//    /**
+//     * Refreshes project tree.
+//     *
+//     * @param event
+//     */
+//    public void onRefreshProjectTree(RefreshProjectTreeEvent event) {
+//        eventBus.fireEvent(new PersistProjectTreeStateEvent());
+//
+//        if (appContext.getCurrentProject() == null) {
+//            setTree(projectListStructureProvider.get());
+//            return;
+//        }
+//
+//        if (event.refreshSubtree()) {
+//            nodesToRefresh = view.getOpenedTreeNodes();
+//            refreshTreeNodes();
+//            return;
+//        }
+//
+//        if (event.getNode() != null) {
+//            refreshAndSelectNode(event.getNode());
+//            return;
+//        }
+//
+//        currentTreeStructure.getRootNodes(new AsyncCallback<Array<TreeNode<?>>>() {
+//            @Override
+//            public void onSuccess(Array<TreeNode<?>> result) {
+//                for (TreeNode<?> childNode : result.asIterable()) {
+//                    // clear children in order to force to refresh
+//                    childNode.setChildren(Collections.<TreeNode<?>>createArray());
+//                    refreshAndSelectNode(childNode);
+//
+//                    ProjectDescriptor projectDescriptor = appContext.getCurrentProject().getRootProject();
+//                    String workspaceName = projectDescriptor.getWorkspaceName();
+//                    String fullProjectPath = "/" + workspaceName + projectDescriptor.getPath();
+//                    eventBus.fireEvent(new RestoreProjectTreeStateEvent(fullProjectPath));
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable caught) {
+//                Log.error(ProjectExplorerPartPresenter.class, caught);
+//            }
+//        });
+//    }
     /**
      * Asynchronously refreshes all nodes from the nodesToRefresh list.
      */
@@ -460,9 +444,9 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
     /** {@inheritDoc} */
     @Override
     public void onNodeSelected(final TreeNode< ? > node, final SelectionModel< ? > model) {
-        final Array< ? > allSelected = model.getSelectedNodes();
+        final List<?> allSelected = model.getSelectedNodes();
         final List<Object> newSelection = new ArrayList<>();
-        for (final Object item : allSelected.asIterable()) {
+        for (final Object item : allSelected) {
             newSelection.add(item);
         }
         if (newSelection.contains(node)) {
@@ -472,7 +456,7 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
         }
 
         if (node != null && node instanceof StorableNode && appContext.getCurrentProject() != null) {
-            appContext.getCurrentProject().setProjectDescription(node.getProject().getData());
+            appContext.getCurrentProject().setProjectDescription(node.getProject().getProjectDescriptor());
         }
     }
 
@@ -522,18 +506,6 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
 
     /** {@inheritDoc} */
     @Override
-    public void onDeleteKey() {
-        List<StorableNode> selectedNodes = new ArrayList<>();
-        for (Object node : view.getSelectedNodes().asIterable()) {
-            if (node instanceof StorableNode) {
-                selectedNodes.add((StorableNode) node);
-            }
-        }
-        deleteNodeHandler.deleteNodes(selectedNodes);
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void onEnterKey() {
         view.getSelectedNode().processNodeAction();
     }
@@ -543,9 +515,9 @@ public class ProjectExplorerPartPresenter extends BasePresenter implements Proje
         if (appContext.getCurrentProject() != null) {
             appContext.getCurrentProject().setCurrentTree(currentTreeStructure);
         }
-        treeStructure.getRootNodes(new AsyncCallback<Array<TreeNode<?>>>() {
+        treeStructure.getRootNodes(new AsyncCallback<List<TreeNode<?>>>() {
             @Override
-            public void onSuccess(Array<TreeNode<?>> result) {
+            public void onSuccess(List<TreeNode<?>> result) {
                 view.setRootNodes(result);
             }
 

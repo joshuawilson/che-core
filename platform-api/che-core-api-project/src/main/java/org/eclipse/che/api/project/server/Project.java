@@ -92,6 +92,10 @@ public class Project {
         return getMisc().getModificationDate();
     }
 
+    public String getContentRoot() throws ServerException {
+        return getMisc().getContentRoot();
+    }
+
     /** @see ProjectMisc */
     public ProjectMisc getMisc() throws ServerException {
         return manager.getProjectMisc(this);
@@ -391,14 +395,15 @@ public class Project {
 
         private final String MODULES_PATH = ".codenvy/modules";
 
-        public void remove(String path) throws ForbiddenException, ServerException, ConflictException {
+        public boolean remove(String path) throws ForbiddenException, ServerException, ConflictException {
 
             Set<String> all = read();
             if (all.contains(path)) {
                 all.remove(path);
                 write(all);
+                return true;
             }
-
+            return false;
         }
 
         public void add(String path) throws ForbiddenException, ServerException, ConflictException {

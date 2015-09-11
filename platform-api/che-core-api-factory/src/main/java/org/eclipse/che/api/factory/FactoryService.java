@@ -27,6 +27,7 @@ import org.eclipse.che.api.project.server.ProjectConfig;
 import org.eclipse.che.api.project.server.ProjectJson;
 import org.eclipse.che.api.project.server.DtoConverter;
 import org.eclipse.che.api.project.server.type.AttributeValue;
+import org.eclipse.che.api.project.shared.dto.ProjectModule;
 import org.eclipse.che.api.project.shared.dto.Source;
 import org.eclipse.che.api.project.shared.Builders;
 import org.eclipse.che.api.project.server.Project;
@@ -41,8 +42,6 @@ import org.eclipse.che.commons.lang.URLEncodedUtils;
 import org.eclipse.che.commons.user.User;
 import org.eclipse.che.dto.server.DtoFactory;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.gson.JsonSyntaxException;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -85,6 +84,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -407,7 +407,7 @@ public class FactoryService extends Service {
     @SuppressWarnings("unchecked")
     public List<Link> getFactoryByAttribute(@Context UriInfo uriInfo) throws ApiException {
         List<Link> result = new ArrayList<>();
-        URI uri = UriBuilder.fromUri(uriInfo.getRequestUri()).replaceQueryParam("token", null).build();
+        URI uri = UriBuilder.fromUri(uriInfo.getRequestUri()).replaceQueryParam("token").build();
         Map<String, Set<String>> queryParams = URLEncodedUtils.parse(uri, "UTF-8");
         if (queryParams.isEmpty()) {
             throw new IllegalArgumentException("Query must contain at least one attribute.");
@@ -612,6 +612,19 @@ public class FactoryService extends Service {
                                    .withDescription(projectJson.getDescription());
             newProject.setMixinTypes(projectJson.getMixinTypes());
 
+            for (Project module : projectManager.getProjectModules(project)) {
+                ProjectConfig moduleConfig = module.getConfig();
+                String moduleRelativePath = module.getPath().substring(project.getPath().length());
+                final ProjectJson moduleJson = ProjectJson.load(module);
+                newProject.getModules().add(DtoFactory.newDto(ProjectModule.class).withType(moduleConfig.getTypeId())
+                                                      .withPath(moduleRelativePath)
+                                                      .withAttributes(moduleJson.getAttributes())
+                                                      .withBuilders(DtoConverter.toDto(moduleConfig.getBuilders()))
+                                                      .withRunners(DtoConverter.toDto(moduleConfig.getRunners()))
+                                                      .withMixins(moduleConfig.getMixinTypes())
+                                                      .withDescription(moduleJson.getDescription()));
+            }
+
             final Builders builders = projectJson.getBuilders();
             if (builders != null) {
                 newProject.withBuilders(DtoConverter.toDto(builders));
@@ -648,12 +661,10 @@ public class FactoryService extends Service {
 
         if (factory.getWorkspace() != null && "owner".equals(factory.getWorkspace().getLocation()) &&
             factory.getCreator().getAccountId() == null) {
-            List<Member> ownedAccounts = FluentIterable.from(accountDao.getByMember(currentUser.getId())).filter(new Predicate<Member>() {
-                @Override
-                public boolean apply(Member input) {
-                    return input.getRoles().contains("account/owner");
-                }
-            }).toList();
+            List<Member> ownedAccounts = accountDao.getByMember(currentUser.getId())
+                                                   .stream()
+                                                   .filter(member -> member.getRoles().contains("account/owner"))
+                                                   .collect(Collectors.toList());
             switch (ownedAccounts.size()) {
                 case 0: {
                     // must never happen but who knows

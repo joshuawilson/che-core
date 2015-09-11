@@ -37,11 +37,17 @@ public interface NewProject extends ProjectUpdate {
     void setName(String name);
 
     /** Gets generator description. */
-    @ApiModelProperty("Project generator descriptior provides details on the project being created")
+    @ApiModelProperty(value = "Project generator descriptior provides details on the project being created", position = 2)
     GeneratorDescription getGeneratorDescription();
 
     /** Sets generator description. */
     void setGeneratorDescription(GeneratorDescription generatorDescription);
+
+
+    @ApiModelProperty(value = "Descriptions for project modules", position = 3)
+    List<ProjectModule>  getModules();
+
+    void setModules(List<ProjectModule> modules);
 
     // For method call chain
 
@@ -49,6 +55,8 @@ public interface NewProject extends ProjectUpdate {
     NewProject withName(String name);
 
     NewProject withGeneratorDescription(GeneratorDescription generatorDescription);
+
+    NewProject withModules(List<ProjectModule> modules);
 
     NewProject withType(String type);
 
@@ -61,4 +69,10 @@ public interface NewProject extends ProjectUpdate {
     NewProject withAttributes(Map<String, List<String>> attributes);
 
     NewProject withVisibility(String visibility);
+
+    String getContentRoot();
+
+    void setContentRoot(String contentRoot);
+
+    NewProject withContentRoot(String contentRoot);
 }

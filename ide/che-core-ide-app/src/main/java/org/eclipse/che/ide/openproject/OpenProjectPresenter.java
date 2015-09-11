@@ -11,15 +11,19 @@
 package org.eclipse.che.ide.openproject;
 
 import org.eclipse.che.api.project.gwt.client.ProjectServiceClient;
+import org.eclipse.che.api.project.shared.dto.ProjectDescriptor;
 import org.eclipse.che.api.project.shared.dto.ProjectReference;
+import org.eclipse.che.ide.api.app.AppContext;
+import org.eclipse.che.ide.api.app.CurrentProject;
 import org.eclipse.che.ide.api.event.OpenProjectEvent;
-import org.eclipse.che.ide.collections.Array;
 import org.eclipse.che.ide.rest.AsyncRequestCallback;
 import org.eclipse.che.ide.rest.DtoUnmarshallerFactory;
 import org.eclipse.che.ide.util.loging.Log;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.web.bindery.event.shared.EventBus;
+
+import java.util.List;
 
 /**
  * Provides opening project.
@@ -31,19 +35,22 @@ public class OpenProjectPresenter implements OpenProjectView.ActionDelegate {
     private DtoUnmarshallerFactory dtoUnmarshallerFactory;
     private ProjectServiceClient   projectServiceClient;
     private EventBus               eventBus;
-    private OpenProjectView        view;
-    private ProjectReference       selectedProject;
+    private final AppContext appContext;
+    private OpenProjectView  view;
+    private ProjectReference selectedProject;
 
     /** Create presenter. */
     @Inject
     protected OpenProjectPresenter(OpenProjectView view,
                                    DtoUnmarshallerFactory dtoUnmarshallerFactory,
                                    ProjectServiceClient projectServiceClient,
-                                   EventBus eventBus) {
+                                   EventBus eventBus,
+                                   AppContext appContext) {
         this.view = view;
         this.dtoUnmarshallerFactory = dtoUnmarshallerFactory;
         this.projectServiceClient = projectServiceClient;
         this.eventBus = eventBus;
+        this.appContext = appContext;
         this.view.setDelegate(this);
 
         updateComponents();
@@ -57,7 +64,12 @@ public class OpenProjectPresenter implements OpenProjectView.ActionDelegate {
     /** {@inheritDoc} */
     @Override
     public void onOpenClicked() {
-        eventBus.fireEvent(new OpenProjectEvent(selectedProject.getName()));
+        //if user select already opened project, we just hide dialog
+        CurrentProject currentProject = appContext.getCurrentProject();
+        if (currentProject == null || !selectedProject.getName().equals(currentProject.getRootProject().getName())) {
+            eventBus.fireEvent(new OpenProjectEvent(selectedProject.getName()));
+        }
+
         view.close();
     }
 
@@ -77,9 +89,9 @@ public class OpenProjectPresenter implements OpenProjectView.ActionDelegate {
     /** Show dialog. */
     public void showDialog() {
         projectServiceClient.getProjects(
-                new AsyncRequestCallback<Array<ProjectReference>>(dtoUnmarshallerFactory.newArrayUnmarshaller(ProjectReference.class)) {
+                new AsyncRequestCallback<List<ProjectReference>>(dtoUnmarshallerFactory.newListUnmarshaller(ProjectReference.class)) {
                     @Override
-                    protected void onSuccess(Array<ProjectReference> result) {
+                    protected void onSuccess(List<ProjectReference> result) {
                         view.setProjects(result);
                         view.showDialog();
                     }

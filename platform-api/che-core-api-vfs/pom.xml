@@ -16,7 +16,7 @@
     <parent>
         <artifactId>che-core-api-parent</artifactId>
         <groupId>org.eclipse.che.core</groupId>
-        <version>3.12.0-SNAPSHOT</version>
+        <version>3.12.3-SNAPSHOT</version>
     </parent>
     <artifactId>che-core-api-vfs</artifactId>
     <packaging>jar</packaging>
@@ -42,7 +42,7 @@
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
-            <artifactId>jsr250-api</artifactId>
+            <artifactId>javax.annotation-api</artifactId>
             <version>${javax.annotation.version}</version>
         </dependency>
         <dependency>

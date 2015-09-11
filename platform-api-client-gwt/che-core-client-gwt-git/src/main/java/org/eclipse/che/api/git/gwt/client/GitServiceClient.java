@@ -11,6 +11,7 @@
 package org.eclipse.che.api.git.gwt.client;
 
 import org.eclipse.che.api.git.shared.Branch;
+import org.eclipse.che.api.git.shared.BranchCheckoutRequest;
 import org.eclipse.che.api.git.shared.Commiters;
 import org.eclipse.che.api.git.shared.DiffRequest;
 import org.eclipse.che.api.git.shared.GitUrlVendorInfo;
@@ -25,7 +26,6 @@ import org.eclipse.che.api.git.shared.Revision;
 import org.eclipse.che.api.git.shared.Status;
 import org.eclipse.che.api.git.shared.StatusFormat;
 import org.eclipse.che.api.project.shared.dto.ProjectDescriptor;
-import org.eclipse.che.ide.collections.Array;
 import org.eclipse.che.ide.rest.AsyncRequestCallback;
 import org.eclipse.che.ide.websocket.WebSocketException;
 import org.eclipse.che.ide.websocket.rest.RequestCallback;
@@ -95,7 +95,7 @@ public interface GitServiceClient {
      * @param callback
      */
     void branchList(@Nonnull ProjectDescriptor project, @Nullable String mode,
-                    @Nonnull AsyncRequestCallback<Array<Branch>> callback);
+                    @Nonnull AsyncRequestCallback<List<Branch>> callback);
 
     /**
      * Delete branch.
@@ -136,28 +136,14 @@ public interface GitServiceClient {
      *         name of a commit at which to start the new branch
      * @param callback
      */
-    void branchCreate(@Nonnull ProjectDescriptor project, @Nonnull String name, @Nonnull String startPoint,
+    void branchCreate(@Nonnull ProjectDescriptor project, @Nonnull String name, @Nullable String startPoint,
                       @Nonnull AsyncRequestCallback<Branch> callback);
 
     /**
      * Checkout the branch with pointed name.
-     *
-     * @param project
-     *         project (root of GIT repository)
-     * @param name
-     *         branch's name
-     * @param startPoint
-     *         if {@code createNew} is <code>true</code> then create a new branch {@code name} referencing {@code startPoint}, and check it
-     *         out.
-     *         Note: {@code startPoint} may be specified any way you like, including using a remote branch name or a name of a commit at
-     *         which to start the new branch.
-     *         For example, if {@code startPoint} is 'origin/branch' then will create branch 'name' and track 'origin/branch'.
-     * @param createNew
-     *         if <code>true</code> then create a new branch
-     * @param callback
      */
-    void branchCheckout(@Nonnull ProjectDescriptor project, @Nonnull String name, @Nullable String startPoint,
-                        boolean createNew, @Nonnull AsyncRequestCallback<String> callback);
+    void branchCheckout(@Nonnull ProjectDescriptor project, @Nonnull BranchCheckoutRequest branchCheckoutRequest,
+                        @Nonnull AsyncRequestCallback<String> callback);
 
     /**
      * Get the list of remote repositories for pointed by <code>workDir</code> parameter one.
@@ -171,7 +157,7 @@ public interface GitServiceClient {
      * @param callback
      */
     void remoteList(@Nonnull ProjectDescriptor project, @Nullable String remoteName, boolean verbose,
-                    @Nonnull AsyncRequestCallback<Array<Remote>> callback);
+                    @Nonnull AsyncRequestCallback<List<Remote>> callback);
 
     /**
      * Adds remote repository to the list of remote repositories.
@@ -323,7 +309,7 @@ public interface GitServiceClient {
 
     /**
      * Performs commit for the given files (ignoring git index).
-
+     *
      * @param project
      *         project (root of GIT repository)
      * @param message

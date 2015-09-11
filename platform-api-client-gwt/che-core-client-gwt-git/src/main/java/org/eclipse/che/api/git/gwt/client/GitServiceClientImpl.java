@@ -13,7 +13,6 @@ package org.eclipse.che.api.git.gwt.client;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.google.web.bindery.event.shared.EventBus;
 
 import org.eclipse.che.api.git.shared.AddRequest;
 import org.eclipse.che.api.git.shared.Branch;
@@ -48,7 +47,6 @@ import org.eclipse.che.api.git.shared.Status;
 import org.eclipse.che.api.git.shared.StatusFormat;
 import org.eclipse.che.api.project.shared.dto.ProjectDescriptor;
 import org.eclipse.che.ide.MimeType;
-import org.eclipse.che.ide.collections.Array;
 import org.eclipse.che.ide.dto.DtoFactory;
 import org.eclipse.che.ide.rest.AsyncRequestCallback;
 import org.eclipse.che.ide.rest.AsyncRequestFactory;
@@ -67,9 +65,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.gwt.http.client.RequestBuilder.POST;
+import static org.eclipse.che.api.git.shared.StatusFormat.PORCELAIN;
 import static org.eclipse.che.ide.MimeType.APPLICATION_JSON;
 import static org.eclipse.che.ide.MimeType.TEXT_PLAIN;
-import static org.eclipse.che.api.git.shared.StatusFormat.PORCELAIN;
 import static org.eclipse.che.ide.rest.HTTPHeader.ACCEPT;
 import static org.eclipse.che.ide.rest.HTTPHeader.CONTENTTYPE;
 
@@ -106,31 +104,25 @@ public class GitServiceClientImpl implements GitServiceClient {
     public static final String COMMITERS         = "/commiters";
     public static final String DELETE_REPOSITORY = "/delete-repository";
     /** REST service context. */
-    private final String                  baseHttpUrl;
-    private final String                  gitServicePath;
+    private final String              baseHttpUrl;
+    private final String              gitServicePath;
     /** Loader to be displayed. */
-    private final AsyncRequestLoader      loader;
-    private final MessageBus              wsMessageBus;
-    private final EventBus                eventBus;
-//    private final GitLocalizationConstant constant;
-    private final DtoFactory              dtoFactory;
-    private final AsyncRequestFactory     asyncRequestFactory;
+    private final AsyncRequestLoader  loader;
+    private final MessageBus          wsMessageBus;
+    private final DtoFactory          dtoFactory;
+    private final AsyncRequestFactory asyncRequestFactory;
 
     @Inject
     protected GitServiceClientImpl(@RestContext String restContext,
                                    @Named("workspaceId") String workspaceId,
                                    AsyncRequestLoader loader,
                                    MessageBus wsMessageBus,
-                                   EventBus eventBus,
-//                                   GitLocalizationConstant constant,
                                    DtoFactory dtoFactory,
                                    AsyncRequestFactory asyncRequestFactory) {
         this.loader = loader;
         this.gitServicePath = "/git/" + workspaceId;
         this.baseHttpUrl = restContext + gitServicePath;
         this.wsMessageBus = wsMessageBus;
-        this.eventBus = eventBus;
-//        this.constant = constant;
         this.dtoFactory = dtoFactory;
         this.asyncRequestFactory = asyncRequestFactory;
     }
@@ -259,7 +251,7 @@ public class GitServiceClientImpl implements GitServiceClient {
     /** {@inheritDoc} */
     @Override
     public void remoteList(@Nonnull ProjectDescriptor project, @Nullable String remoteName, boolean verbose,
-                           @Nonnull AsyncRequestCallback<Array<Remote>> callback) {
+                           @Nonnull AsyncRequestCallback<List<Remote>> callback) {
         RemoteListRequest remoteListRequest = dtoFactory.createDto(RemoteListRequest.class).withVerbose(verbose);
         if (remoteName != null) {
             remoteListRequest.setRemote(remoteName);
@@ -271,7 +263,7 @@ public class GitServiceClientImpl implements GitServiceClient {
     /** {@inheritDoc} */
     @Override
     public void branchList(@Nonnull ProjectDescriptor project, @Nullable String remoteMode,
-                           @Nonnull AsyncRequestCallback<Array<Branch>> callback) {
+                           @Nonnull AsyncRequestCallback<List<Branch>> callback) {
         BranchListRequest branchListRequest = dtoFactory.createDto(BranchListRequest.class).withListMode(remoteMode);
         String url = baseHttpUrl + BRANCH_LIST + "?projectPath=" + project.getPath();
         asyncRequestFactory.createPostRequest(url, branchListRequest).send(callback);
@@ -322,12 +314,8 @@ public class GitServiceClientImpl implements GitServiceClient {
 
     /** {@inheritDoc} */
     @Override
-    public void branchCheckout(@Nonnull ProjectDescriptor project, @Nonnull String name, @Nullable String startPoint,
-                               boolean createNew, @Nonnull AsyncRequestCallback<String> callback) {
-        BranchCheckoutRequest branchCheckoutRequest = dtoFactory.createDto(BranchCheckoutRequest.class)
-                                                                .withName(name)
-                                                                .withStartPoint(startPoint)
-                                                                .withCreateNew(createNew);
+    public void branchCheckout(@Nonnull ProjectDescriptor project, @Nonnull BranchCheckoutRequest branchCheckoutRequest,
+                               @Nonnull AsyncRequestCallback<String> callback) {
         String url = baseHttpUrl + BRANCH_CHECKOUT + "?projectPath=" + project.getPath();
         asyncRequestFactory.createPostRequest(url, branchCheckoutRequest).loader(loader).send(callback);
     }

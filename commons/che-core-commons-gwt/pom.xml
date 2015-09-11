@@ -16,7 +16,7 @@
     <parent>
         <artifactId>che-core-commons-parent</artifactId>
         <groupId>org.eclipse.che.core</groupId>
-        <version>3.12.0-SNAPSHOT</version>
+        <version>3.12.3-SNAPSHOT</version>
     </parent>
     <artifactId>che-core-commons-gwt</artifactId>
     <name>Che Core :: Commons :: GWT</name>
@@ -78,7 +78,6 @@
                     <excludes>
                         <!-- Apache license -->
                         <exclude>**/org/eclipse/che/ide/collections/**</exclude>
-                        <exclude>**/org/eclipse/che/ide/dto/shared/**</exclude>
                         <exclude>**/org/eclipse/che/ide/dto/JsonSerializable.java</exclude>
                         <exclude>**/org/eclipse/che/ide/mvp/**</exclude>
                         <exclude>**/org/eclipse/che/ide/ui/list/*.java</exclude>
