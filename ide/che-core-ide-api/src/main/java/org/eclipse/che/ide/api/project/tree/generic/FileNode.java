@@ -30,7 +30,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.web.bindery.event.shared.EventBus;
 
-import javax.annotation.Nullable;
+import org.eclipse.che.commons.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -101,7 +101,7 @@ public class FileNode extends ItemNode implements VirtualFile {
             @Override
             protected void onSuccess(ItemReference result) {
                 setData(result);
-                updateEditorPartData(oldNodePath);
+
                 asyncCallback.onSuccess(null);
             }
 
@@ -110,14 +110,6 @@ public class FileNode extends ItemNode implements VirtualFile {
                 asyncCallback.onFailure(exception);
             }
         });
-    }
-
-    private void updateEditorPartData(String oldPath) {
-        final Collection<String> pathOpenedEditors = editorAgent.getOpenedEditors().keySet();
-
-        if (pathOpenedEditors.contains(oldPath)) {
-            editorAgent.updateEditorNode(oldPath, FileNode.this);
-        }
     }
 
     /** {@inheritDoc} */
