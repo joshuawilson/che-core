@@ -129,7 +129,7 @@ public class AuthenticationService {
         try {
             final WebContext context = new J2EContext(request, response);
             Client client = clients.findClient(context);
-            client.redirect(context, true, false);
+            client.redirect(context, true);
         } catch (RequiresHttpAction e) {
             throw new ForbiddenException(e.getLocalizedMessage());
         }
@@ -145,7 +145,7 @@ public class AuthenticationService {
         try {
             final WebContext context = new J2EContext(request, response);
             Client client = clients.findClient(context);
-            client.redirect(context, true, false);
+            client.redirect(context, true);
         } catch (RequiresHttpAction e) {
             throw new ForbiddenException(e.getLocalizedMessage());
         }

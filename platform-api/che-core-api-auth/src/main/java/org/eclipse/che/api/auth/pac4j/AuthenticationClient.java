@@ -11,12 +11,7 @@
 package org.eclipse.che.api.auth.pac4j;
 
 import org.pac4j.core.client.BaseClient;
-import org.pac4j.core.client.DirectClient;
-import org.pac4j.core.client.Mechanism;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.credentials.Credentials;
-import org.pac4j.core.exception.RequiresHttpAction;
-import org.pac4j.core.profile.CommonProfile;
+import org.pac4j.core.client.ClientType;
 import org.pac4j.http.client.direct.DirectHttpClient;
 import org.pac4j.http.credentials.UsernamePasswordCredentials;
 import org.pac4j.http.credentials.authenticator.Authenticator;
@@ -50,7 +45,9 @@ public class AuthenticationClient extends DirectHttpClient<UsernamePasswordCrede
     }
 
     @Override
-    public Mechanism getMechanism() {
-        return Mechanism.PARAMETER_MECHANISM;
+    public ClientType getClientType() {
+        return ClientType.BASICAUTH_BASED;
     }
+
+
 }

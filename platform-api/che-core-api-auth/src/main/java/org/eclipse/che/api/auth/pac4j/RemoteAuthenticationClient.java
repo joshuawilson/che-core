@@ -13,7 +13,7 @@ package org.eclipse.che.api.auth.pac4j;
 import org.eclipse.che.api.auth.CookiesTokenExtractor;
 import org.eclipse.che.api.auth.TokenExtractor;
 import org.pac4j.core.client.BaseClient;
-import org.pac4j.core.client.Mechanism;
+import org.pac4j.core.client.ClientType;
 import org.pac4j.core.client.RedirectAction;
 import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
@@ -50,7 +50,9 @@ public class RemoteAuthenticationClient extends IndirectHttpClient {
     }
 
     @Override
-    public Mechanism getMechanism() {
-        return Mechanism.PARAMETER_MECHANISM;
+    public ClientType getClientType() {
+        return ClientType.BASICAUTH_BASED;
     }
+
+
 }

@@ -23,11 +23,12 @@ import org.eclipse.che.api.workspace.server.dao.MemberDao;
 import org.pac4j.core.authorization.AuthorizationGenerator;
 import org.pac4j.core.profile.CommonProfile;
 
-import javax.annotation.Nullable;
+
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Sergii Kabashniuk
@@ -56,41 +57,15 @@ public class CheAuthorizationGenerator implements AuthorizationGenerator {
                 userRoles.add("user");
             }
 
-            userRoles.addAll(from(accountDao.getByMember(userId))
-                                           .transformAndConcat(new Function<Member, Iterable<String>>() {
-                                               @Nullable
-                                               @Override
-                                               public Iterable<String> apply(final @Nullable Member member) {
-                                                   return from(member.getRoles()).transform(new Function<String, String>() {
-                                                       @Nullable
-                                                       @Override
-                                                       public String apply(@Nullable String role) {
-                                                           return "account/" + member.getAccountId() + "/" + role;
-                                                       }
-                                                   });
-                                               }
-                                           }).toList()
-                            );
+            accountDao.getByMember(userId).stream()
+                      .flatMap(m -> m.getRoles().stream()
+                                     .map(r -> "account/" + m.getAccountId() + "/" + r))
+                      .forEach(userRoles::add);
 
-            userRoles.addAll(from(memberDao.getUserRelationships(userId))
-                                           .transformAndConcat(
-                                                   new Function<org.eclipse.che.api.workspace.server.dao.Member, Iterable<String>>() {
-                                                       @Nullable
-                                                       @Override
-                                                       public Iterable<String> apply(
-                                                               final @Nullable org.eclipse.che.api.workspace.server.dao.Member member) {
-                                                           return from(member.getRoles())
-                                                                                .transform(new Function<String, String>() {
-                                                                                    @Nullable
-                                                                                    @Override
-                                                                                    public String apply(@Nullable String role) {
-                                                                                        return "workspace/" + member.getWorkspaceId() +
-                                                                                               "/" + role;
-                                                                                    }
-                                                                                });
-                                                       }
-                                                   }).toList()
-                            );
+            memberDao.getUserRelationships(userId).stream()
+                      .flatMap(m -> m.getRoles().stream()
+                                     .map(r -> "workspace/" + m.getWorkspaceId() + "/"+r))
+                      .forEach(userRoles::add);
 
         } catch (Exception e) {
 
