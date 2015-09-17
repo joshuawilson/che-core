@@ -84,4 +84,6 @@ public interface TextEditor extends EditorPartPresenter {
      * @param message message
      */
     void showMessage(String message);
+
+    boolean isFocused();
 }
