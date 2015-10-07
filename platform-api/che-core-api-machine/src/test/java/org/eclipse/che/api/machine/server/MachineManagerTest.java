@@ -10,17 +10,15 @@
  *******************************************************************************/
 package org.eclipse.che.api.machine.server;
 
-
 import org.eclipse.che.api.core.BadRequestException;
+import org.eclipse.che.api.core.model.machine.MachineStatus;
 import org.eclipse.che.api.core.model.machine.Recipe;
 import org.eclipse.che.api.core.notification.EventService;
 import org.eclipse.che.api.core.util.LineConsumer;
 import org.eclipse.che.api.machine.server.dao.SnapshotDao;
-import org.eclipse.che.api.machine.server.impl.MachineImpl;
+import org.eclipse.che.api.machine.server.model.impl.MachineImpl;
 import org.eclipse.che.api.machine.server.spi.Instance;
 import org.eclipse.che.api.machine.server.spi.InstanceProvider;
-import org.eclipse.che.api.machine.shared.MachineStatus;
-import org.eclipse.che.api.machine.shared.dto.RecipeMachineCreationMetadata;
 import org.eclipse.che.api.machine.shared.dto.recipe.MachineRecipe;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.user.UserImpl;
@@ -98,7 +96,7 @@ public class MachineManagerTest {
         when(machineInstanceProviders.getProvider(any())).thenReturn(instanceProvider);
         when(machineRecipe.getType()).thenReturn(type);
         when(instanceProvider.getRecipeTypes()).thenReturn(recipeTypes);
-        when(machineCreationMetadata.getDisplayName()).thenReturn("@name!");
+        when(machineCreationMetadata.getName()).thenReturn("@name!");
 
         manager.create(machineCreationMetadata, false);
     }
@@ -119,7 +117,7 @@ public class MachineManagerTest {
         when(machineInstanceProviders.getProvider(any())).thenReturn(instanceProvider);
         when(machineRecipe.getType()).thenReturn(type);
         when(instanceProvider.getRecipeTypes()).thenReturn(recipeTypes);
-        when(machineCreationMetadata.getDisplayName()).thenReturn(machineDisplayName);
+        when(machineCreationMetadata.getName()).thenReturn(machineDisplayName);
         when(machineRegistry.getStates()).thenReturn(machines);
         when(machineCreationMetadata.getOutputChannel()).thenReturn(outputChannel);
         doNothing().when(machineRegistry).add(any(MachineImpl.class));

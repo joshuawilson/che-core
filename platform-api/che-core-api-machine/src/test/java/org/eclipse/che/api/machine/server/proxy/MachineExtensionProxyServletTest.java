@@ -11,12 +11,13 @@
 package org.eclipse.che.api.machine.server.proxy;
 
 import org.eclipse.che.api.core.NotFoundException;
+import org.eclipse.che.api.core.model.machine.MachineMetadata;
+import org.eclipse.che.api.core.model.machine.Server;
 import org.eclipse.che.api.machine.server.MachineManager;
 import org.eclipse.che.api.machine.server.exception.MachineException;
-import org.eclipse.che.api.machine.server.impl.ServerImpl;
+import org.eclipse.che.api.machine.server.model.impl.MachineMetadataImpl;
+import org.eclipse.che.api.machine.server.model.impl.ServerImpl;
 import org.eclipse.che.api.machine.server.spi.Instance;
-import org.eclipse.che.api.machine.server.spi.InstanceMetadata;
-import org.eclipse.che.api.machine.shared.Server;
 import org.eclipse.che.commons.lang.IoUtil;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -68,13 +69,9 @@ public class MachineExtensionProxyServletTest {
 
     private ContextHandler contextHandler;
 
-    private Map<String, Server> machineServers;
-
     private MachineManager machineManager;
 
     private Instance machine;
-
-    private InstanceMetadata instanceMetadata;
 
     private MachineExtensionProxyServlet proxyServlet;
 
@@ -83,6 +80,8 @@ public class MachineExtensionProxyServletTest {
     private ExtensionApiResponse extensionApiResponse;
 
     private ExtensionApiRequest extensionApiRequest;
+
+    private MachineMetadata machineMetadata;
 
     // Todo
     // send entity to destination
@@ -112,14 +111,11 @@ public class MachineExtensionProxyServletTest {
         jettyServer.setHandler(contextHandler);
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    jettyServer.start();
-                } catch (Exception e) {
-                    System.err.println(e.getLocalizedMessage());
-                }
+        executorService.execute(() -> {
+            try {
+                jettyServer.start();
+            } catch (Exception e) {
+                System.err.println(e.getLocalizedMessage());
             }
         });
 
@@ -127,10 +123,14 @@ public class MachineExtensionProxyServletTest {
             Thread.sleep(500);
         }
 
-        machineServers = Collections.<String, Server>singletonMap(String.valueOf(EXTENSIONS_API_PORT),
-                                                                  new ServerImpl(null,
-                                                                                 "localhost:" + jettyServer.getURI().getPort(),
-                                                                                 null));
+
+        Map<String, Server> machineServers = Collections.<String, Server>singletonMap(String.valueOf(EXTENSIONS_API_PORT),
+                                                                                      new ServerImpl(null,
+                                                                                                     "localhost:" +
+                                                                                                     jettyServer.getURI().getPort(),
+                                                                                                     null));
+
+        machineMetadata = new MachineMetadataImpl(null, null, machineServers);
     }
 
     @BeforeMethod
@@ -139,8 +139,6 @@ public class MachineExtensionProxyServletTest {
 
         machine = mock(Instance.class);
 
-        instanceMetadata = mock(InstanceMetadata.class);
-
         extensionApiResponse = spy(new ExtensionApiResponse());
 
         extensionApiRequest = new ExtensionApiRequest();
@@ -148,8 +146,7 @@ public class MachineExtensionProxyServletTest {
         proxyServlet = new MachineExtensionProxyServlet(4301, machineManager);
 
         when(machineManager.getDevMachine(WORKSPACE_ID)).thenReturn(machine);
-        when(machine.getMetadata()).thenReturn(instanceMetadata);
-        when(machine.getServers()).thenReturn(machineServers);
+        when(machine.getMetadata()).thenReturn(machineMetadata);
     }
 
     @AfterClass
@@ -258,7 +255,7 @@ public class MachineExtensionProxyServletTest {
 
     @Test
     public void shouldRespondInternalServerErrorIfExtServerIsNotFoundInMachine() throws Exception {
-        when(machine.getServers()).thenReturn(Collections.<String, Server>emptyMap());
+        when(machine.getMetadata()).thenReturn(new MachineMetadataImpl(null, null, null));
 
         MockHttpServletRequest mockRequest =
                 new MockHttpServletRequest(DEFAULT_URL,
@@ -442,7 +439,7 @@ public class MachineExtensionProxyServletTest {
         final Enumeration<String> headerNames = req.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
-            result.put(headerName, new ArrayList<String>());
+            result.put(headerName, new ArrayList<>());
 
             final Enumeration<String> headerValues = req.getHeaders(headerName);
             while (headerValues.hasMoreElements()) {
