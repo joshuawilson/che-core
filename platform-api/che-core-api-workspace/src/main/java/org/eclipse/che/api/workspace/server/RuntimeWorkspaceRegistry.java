@@ -99,7 +99,7 @@ public class RuntimeWorkspaceRegistry {
      *         whe any not found exception occurs during environment start
      * @throws ServerException
      *         when registry {@link #isStopped is stopped} other error occurs during environment start
-     * @see MachineManager#createMachine(MachineConfig, String, String, boolean)
+     * @see MachineManager#createMachineSync(MachineConfig, String, String)
      */
     public RuntimeWorkspaceImpl start(UsersWorkspace usersWorkspace, String envName) throws ConflictException,
                                                                                             ServerException,

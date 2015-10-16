@@ -69,7 +69,7 @@ public class EnvironmentStateImpl /*extends EnvironmentImpl*/ implements Environ
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof EnvironmentImpl)) return false;
+        if (!(obj instanceof EnvironmentStateImpl)) return false;
         final EnvironmentStateImpl other = (EnvironmentStateImpl)obj;
         return Objects.equals(name, other.name) &&
                Objects.equals(recipe, other.recipe) &&

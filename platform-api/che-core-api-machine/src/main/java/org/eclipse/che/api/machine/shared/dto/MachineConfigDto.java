@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.che.api.machine.shared.dto;
 
-import org.eclipse.che.api.core.model.machine.Limits;
 import org.eclipse.che.api.core.factory.FactoryParameter;
 import org.eclipse.che.api.core.model.machine.MachineConfig;
 import org.eclipse.che.dto.shared.DTO;
@@ -57,7 +56,7 @@ public interface MachineConfigDto extends MachineConfig {
 
     @Override
     @FactoryParameter(obligation = OPTIONAL)
-    Limits getLimits();
+    LimitsDto getLimits();
 
     void setLimits(LimitsDto limits);
 

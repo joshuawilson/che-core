@@ -220,10 +220,11 @@ public class UsersWorkspaceImpl implements UsersWorkspace {
                Objects.equals(defaultEnvName, other.defaultEnvName) &&
                Objects.equals(status, other.status) &&
                isTemporary == other.isTemporary &&
-               commands.equals(other.commands) &&
-               environments.equals(other.environments) &&
-               projects.equals(other.projects) &&
-               attributes.equals(other.attributes);
+               getCommands().equals(other.getCommands()) &&
+               getEnvironments().equals(other.getEnvironments()) &&
+               getProjects().equals(other.getProjects()) &&
+               getAttributes().equals(other.getAttributes()) &&
+               Objects.equals(description, other.description);
     }
 
     @Override
@@ -239,6 +240,7 @@ public class UsersWorkspaceImpl implements UsersWorkspace {
         hash = 31 * hash + getEnvironments().hashCode();
         hash = 31 * hash + getProjects().hashCode();
         hash = 31 * hash + getAttributes().hashCode();
+        hash = 31 * hash + Objects.hashCode(description);
         return hash;
     }
 
