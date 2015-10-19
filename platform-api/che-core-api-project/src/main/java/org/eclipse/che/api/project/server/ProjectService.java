@@ -118,7 +118,8 @@ import static java.util.stream.Collectors.toMap;
 @Path("/project/{ws-id}")
 @Singleton // important to have singleton
 public class ProjectService extends Service {
-    private static final Logger LOG = LoggerFactory.getLogger(ProjectService.class);
+    private static final Logger  LOG                   = LoggerFactory.getLogger(ProjectService.class);
+    private static final Pattern RUNNER_NAME_VALIDATOR = Pattern.compile("[\\w-]+((:/)?[\\w-]+)?");
 
     @Inject
     private ProjectManager              projectManager;
@@ -271,8 +272,8 @@ public class ProjectService extends Service {
             throws ConflictException, ForbiddenException, ServerException, NotFoundException, BadRequestException {
         requiredNotNull(workspace, "Workspace id");
         requiredNotNull(newProject, "Project descriptor");
-        isValidProjectName(name);
-        isValidProjectRunners(newProject.getRunners());
+        checkProjectName(name);
+        checkProjectRunners(newProject.getRunners());
 
         final GeneratorDescription generatorDescription = newProject.getGeneratorDescription();
         Map<String, String> options;
@@ -395,7 +396,7 @@ public class ProjectService extends Service {
             throws NotFoundException, ConflictException, ForbiddenException, ServerException, IOException, BadRequestException {
         requiredNotNull(workspace, "Workspace id");
         requiredNotNull(path, "Project path");
-        isValidProjectRunners(update.getRunners());
+        checkProjectRunners(update.getRunners());
         ProjectConfig newConfig = DtoConverter.fromDto2(update, projectManager.getProjectTypeRegistry());
         String newVisibility = update.getVisibility();
         Project project = projectManager.updateProject(workspace, path, newConfig, newVisibility);
@@ -827,7 +828,7 @@ public class ProjectService extends Service {
             throws IOException, ForbiddenException, ConflictException, NotFoundException, ServerException, BadRequestException {
         NewProject newProject = importProject.getProject();
         requiredNotNull(newProject, "Project descriptor");
-        isValidProjectRunners(newProject.getRunners());
+        checkProjectRunners(newProject.getRunners());
         ImportResponse importResponse = DtoFactory.getInstance().createDto(ImportResponse.class);
         ProjectTypeRegistry projectTypeRegistry = projectManager.getProjectTypeRegistry();
         Project project;
@@ -861,7 +862,6 @@ public class ProjectService extends Service {
                                          visibility);
                 RunnersDescriptor projectModuleRunners = projectModule.getRunners();
                 if (projectModuleRunners != null && projectModuleRunners.getDefault() != null) {
-                    projectModuleRunners.getDefault();
                     String defaultRunnerName = projectModuleRunners.getDefault()
                                                                    .substring(projectModuleRunners.getDefault().lastIndexOf('/') + 1);
                     importRunnerEnvironment(importProject,
@@ -1552,7 +1552,7 @@ public class ProjectService extends Service {
      * @throws BadRequestException
      *         when if the project name is null or empty of is invalid
      */
-    void isValidProjectName(String name) throws BadRequestException {
+    void checkProjectName(String name) throws BadRequestException {
         if (Strings.isNullOrEmpty(name)) {
             throw new BadRequestException("Project name required");
         }
@@ -1569,10 +1569,10 @@ public class ProjectService extends Service {
      * @throws BadRequestException
      *         when runner name empty or is invalid
      */
-    void isValidProjectRunners(RunnersDescriptor runnersDescriptor) throws BadRequestException {
+    void checkProjectRunners(RunnersDescriptor runnersDescriptor) throws BadRequestException {
         if (runnersDescriptor != null && runnersDescriptor.getConfigs() != null && !runnersDescriptor.getConfigs().isEmpty()) {
             for (String runnerName : runnersDescriptor.getConfigs().keySet()) {
-                if (!Pattern.compile("[\\w-]+((:/)?[\\w-]+)?").matcher(runnerName).matches()) {
+                if (!RUNNER_NAME_VALIDATOR.matcher(runnerName).matches()) {
                     throw new BadRequestException("Runner name " + runnerName + " is invalid");
                 }
             }

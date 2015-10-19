@@ -3026,14 +3026,14 @@ public class ProjectServiceTest {
     public void shouldThrowExceptionWhenProjectNameIsEmpty() throws Exception {
         ProjectService projectService = spy(new ProjectService());
 
-        projectService.isValidProjectName("");
+        projectService.checkProjectName("");
     }
 
     @Test(expectedExceptions = BadRequestException.class, expectedExceptionsMessageRegExp = "Project name !#project-name#! is invalid")
     public void shouldThrowExceptionWhenProjectNameIsInvalid() throws Exception {
         ProjectService projectService = spy(new ProjectService());
 
-        projectService.isValidProjectName("!#project-name#!");
+        projectService.checkProjectName("!#project-name#!");
     }
 
     @Test(expectedExceptions = BadRequestException.class, expectedExceptionsMessageRegExp = "Runner name !#runenr#! is invalid")
@@ -3043,7 +3043,7 @@ public class ProjectServiceTest {
         RunnerConfiguration config = mock(RunnerConfiguration.class);
         when(runnersDescriptor.getConfigs()).thenReturn(ImmutableMap.of("!#runenr#!", config));
 
-        projectService.isValidProjectRunners(runnersDescriptor);
+        projectService.checkProjectRunners(runnersDescriptor);
     }
 
     private void validateFileLinks(ItemReference item) {
